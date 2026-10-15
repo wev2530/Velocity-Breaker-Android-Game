@@ -1,0 +1,97 @@
+
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="ForgottenTemples" default="jar" basedir=".">
+
+    <property name="src.dir" value="src"/>
+    <property name="res.dir" value="res"/>
+    <property name="build.dir" value="build"/>
+    <property name="classes.dir" value="${build.dir}/classes"/>
+    <property name="dist.dir" value="dist"/>
+
+    <property name="app.name" value="ForgottenTemples"/>
+    <property name="app.title" value="Forgotten Temples"/>
+    <property name="app.version" value="1.0.0"/>
+    <property name="app.vendor" value="Forgotten Temples Team"/>
+    <property name="app.main.class" value="ForgottenTemples"/>
+
+    <property name="wtk.home" value="${env.WTK_HOME}"/>
+
+    <path id="compile.classpath">
+        <pathelement location="${wtk.home}/lib/cldcapi11.jar"/>
+        <pathelement location="${wtk.home}/lib/midpapi20.jar"/>
+    </path>
+
+    <target name="clean">
+        <delete dir="${build.dir}"/>
+        <delete dir="${dist.dir}"/>
+    </target>
+
+    <target name="prepare">
+        <mkdir dir="${classes.dir}"/>
+        <mkdir dir="${dist.dir}"/>
+    </target>
+
+    <target name="check">
+        <available file="${wtk.home}/lib/cldcapi11.jar"
+                   property="cldc.api.found"/>
+        <available file="${wtk.home}/lib/midpapi20.jar"
+                   property="midp.api.found"/>
+
+        <fail unless="cldc.api.found"
+              message="CLDC API not found. Configure WTK_HOME to a Java ME toolkit."/>
+        <fail unless="midp.api.found"
+              message="MIDP API not found. Configure WTK_HOME to a Java ME toolkit."/>
+
+        <available file="${res.dir}/temple_logo.png"
+                   property="logo.found"/>
+
+        <fail unless="logo.found"
+              message="Missing res/temple_logo.png. Upload the loading-screen image first."/>
+    </target>
+
+    <target name="compile" depends="prepare,check">
+        <javac
+            srcdir="${src.dir}"
+            destdir="${classes.dir}"
+            source="1.8"
+            target="1.8"
+            encoding="UTF-8"
+            includeantruntime="false"
+            classpathref="compile.classpath"
+            failonerror="true">
+        </javac>
+    </target>
+
+    <target name="resources" depends="compile">
+        <copy todir="${classes.dir}">
+            <fileset dir="${res.dir}"/>
+        </copy>
+    </target>
+
+    <target name="jar" depends="resources">
+        <jar
+            destfile="${dist.dir}/${app.name}.jar"
+            basedir="${classes.dir}"
+            manifest="manifest.mf">
+        </jar>
+
+        <length file="${dist.dir}/${app.name}.jar"
+                property="jar.size"/>
+
+        <echo file="${dist.dir}/${app.name}.jad"
+              encoding="UTF-8">MIDlet-Name: ${app.title}
+MIDlet-Version: ${app.version}
+MIDlet-Vendor: ${app.vendor}
+MIDlet-Jar-URL: ${app.name}.jar
+MIDlet-Jar-Size: ${jar.size}
+MIDlet-1: ${app.title},,${app.main.class}
+MicroEdition-Configuration: CLDC-1.1
+MicroEdition-Profile: MIDP-2.0
+</echo>
+
+        <echo message="Created ${dist.dir}/${app.name}.jar"/>
+        <echo message="Created ${dist.dir}/${app.name}.jad"/>
+        <echo message="Included resources from ${res.dir}"/>
+    </target>
+
+</project>

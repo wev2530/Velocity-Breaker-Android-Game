@@ -1,4 +1,5 @@
-name: Build VELOCITY BREAKER
+
+name: Build Forgotten Temples Java ME
 
 on:
   push:
@@ -11,7 +12,7 @@ permissions:
 
 jobs:
   build:
-    name: Build Android APK
+    name: Build Forgotten Temples JAR and JAD
     runs-on: ubuntu-latest
 
     steps:
@@ -22,34 +23,34 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: '8'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.9'
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ant zip unzip
 
       - name: Check project files
         run: |
-          echo "Checking Android project..."
-          test -f settings.gradle
-          test -f build.gradle
-          test -f app/build.gradle
-          test -f app/src/main/AndroidManifest.xml
-          echo "Project files found."
+          test -f build.xml
+          test -f manifest.mf
+          test -d src
 
-      - name: Build debug APK
-        run: gradle assembleDebug --stacktrace
+      - name: Build Java ME game
+        run: ant clean jar
 
-      - name: Upload APK
+      - name: Verify game files
+        run: |
+          test -f dist/ForgottenTemples.jar
+          test -f dist/ForgottenTemples.jad
+          echo "Forgotten Temples build files found."
+
+      - name: Upload Java ME game
         uses: actions/upload-artifact@v4
         with:
-          name: VELOCITY-BREAKER-APK
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: FORGOTTEN-TEMPLES-JAVA-ME
+          path: |
+            dist/ForgottenTemples.jar
+            dist/ForgottenTemples.jad
           if-no-files-found: error
           retention-days: 14
