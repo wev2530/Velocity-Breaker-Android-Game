@@ -25,25 +25,28 @@ jobs:
           distribution: temurin
           java-version: '8'
 
-      - name: Install build tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ant zip unzip
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
 
       - name: Check project files
         run: |
-          test -f build.xml
-          test -f manifest.mf
-          test -d src
+          test -f build.gradle
+          test -f settings.gradle
+          test -f gradle.properties
+          test -f src/ForgottenTemples.java
+          test -f res/temple_logo.png
 
       - name: Build Java ME game
-        run: ant clean jar
+        run: gradle --no-daemon clean buildMidlet
 
       - name: Verify game files
         run: |
           test -f dist/ForgottenTemples.jar
           test -f dist/ForgottenTemples.jad
-          echo "Forgotten Temples build files found."
+          unzip -l dist/ForgottenTemples.jar
+          echo "Forgotten Temples JAR and JAD were generated."
 
       - name: Upload Java ME game
         uses: actions/upload-artifact@v4
