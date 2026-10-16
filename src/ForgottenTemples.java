@@ -10,8 +10,13 @@ public class ForgottenTemples extends MIDlet {
 
     private Display display;
     private LoadingCanvas loadingCanvas;
+    private boolean destroyed = false;
 
     public void startApp() {
+        if (destroyed) {
+            return;
+        }
+
         display = Display.getDisplay(this);
 
         if (loadingCanvas == null) {
@@ -26,9 +31,13 @@ public class ForgottenTemples extends MIDlet {
     }
 
     public void destroyApp(boolean unconditional) {
+        destroyed = true;
+
         if (loadingCanvas != null) {
             loadingCanvas.stopLoading();
         }
+
+        notifyDestroyed();
     }
 
     private class LoadingCanvas extends Canvas implements Runnable {
@@ -51,12 +60,11 @@ public class ForgottenTemples extends MIDlet {
         }
 
         synchronized void beginLoading() {
-            if (loadingThread != null) {
+            if (loadingThread != null || finished) {
                 return;
             }
 
             loading = true;
-            finished = false;
             startTime = System.currentTimeMillis();
 
             loadingThread = new Thread(this);
@@ -73,42 +81,53 @@ public class ForgottenTemples extends MIDlet {
         }
 
         public void run() {
-            while (loading) {
-                long elapsed =
-                    System.currentTimeMillis() - startTime;
-
-                animationPosition =
-                    (int) ((elapsed / 35) % 100);
-
-                repaint();
-
-                if (elapsed >= 3500) {
-                    break;
-                }
-
-                try {
-                    Thread.sleep(35);
-                } catch (InterruptedException e) {
-                    break;
-                }
-            }
-
-            if (!loading) {
-                return;
-            }
-
-            finished = true;
-            loading = false;
-            repaint();
+            Thread thisThread = Thread.currentThread();
 
             try {
-                Thread.sleep(250);
-            } catch (InterruptedException e) {
-                return;
-            }
+                while (loading && !destroyed) {
+                    long elapsed =
+                        System.currentTimeMillis() - startTime;
 
-            if (!isDestroyed()) {
-                display.setCurrent(new MenuCanvas());
+                    animationPosition =
+                        (int) ((elapsed / 35) % 100);
+
+                    repaint();
+
+                    if (elapsed >= 3500) {
+                        break;
+                    }
+
+                    try {
+                        Thread.sleep(35);
+                    } catch (InterruptedException e) {
+                        return;
+                    }
+                }
+
+                if (!loading || destroyed) {
+                    return;
+                }
+
+                finished = true;
+                loading = false;
+                animationPosition = 100;
+                repaint();
+
+                try {
+                    Thread.sleep(250);
+                } catch (InterruptedException e) {
+                    return;
+                }
+
+                if (!destroyed && display != null) {
+                    display.setCurrent(new MenuCanvas());
+                }
+            } finally {
+                synchronized (this) {
+                    if (loadingThread == thisThread) {
+                        loadingThread = null;
+                    }
+                }
             }
         }
 
@@ -403,9 +422,5 @@ public class ForgottenTemples extends MIDlet {
                 display.setCurrent(new MenuCanvas());
             }
         }
-    }
-
-    private boolean isDestroyed() {
-        return !loading;
     }
 }
