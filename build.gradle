@@ -52,7 +52,8 @@ tasks.named('jar') {
             'MIDlet-Name': 'Forgotten Temples',
             'MIDlet-Version': '1.0.0',
             'MIDlet-Vendor': 'Forgotten Temples Team',
-            'MIDlet-1': 'Forgotten Temples,,ForgottenTemples',
+            'MIDlet-1': 'Forgotten Temples, /temple_logo.png, ForgottenTemples',
+            'MIDlet-Icon': '/temple_logo.png',
             'MicroEdition-Configuration': 'CLDC-1.1',
             'MicroEdition-Profile': 'MIDP-2.0'
         )
@@ -105,7 +106,9 @@ tasks.register('generateJad') {
         def jarFile = file('dist/ForgottenTemples.jar')
 
         if (!jarFile.exists()) {
-            throw new GradleException('Preverified JAR was not created.')
+            throw new GradleException(
+                'Preverified JAR was not created.'
+            )
         }
 
         def jadFile = file('dist/ForgottenTemples.jad')
@@ -116,7 +119,8 @@ tasks.register('generateJad') {
             'MIDlet-Vendor: Forgotten Temples Team\n' +
             'MIDlet-Jar-URL: ForgottenTemples.jar\n' +
             'MIDlet-Jar-Size: ' + jarFile.length() + '\n' +
-            'MIDlet-1: Forgotten Temples,,ForgottenTemples\n' +
+            'MIDlet-1: Forgotten Temples, /temple_logo.png, ForgottenTemples\n' +
+            'MIDlet-Icon: /temple_logo.png\n' +
             'MicroEdition-Configuration: CLDC-1.1\n' +
             'MicroEdition-Profile: MIDP-2.0\n'
 

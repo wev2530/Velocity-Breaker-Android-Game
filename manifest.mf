@@ -3,6 +3,7 @@ Manifest-Version: 1.0
 MIDlet-Name: Forgotten Temples
 MIDlet-Version: 1.0.0
 MIDlet-Vendor: Forgotten Temples Team
-MIDlet-1: Forgotten Temples,,ForgottenTemples
+MIDlet-1: Forgotten Temples, /temple_logo.png, ForgottenTemples
+MIDlet-Icon: /temple_logo.png
 MicroEdition-Configuration: CLDC-1.1
 MicroEdition-Profile: MIDP-2.0
