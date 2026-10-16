@@ -43,6 +43,7 @@ public class ForgottenTemples extends MIDlet {
     private class LoadingCanvas extends Canvas implements Runnable {
 
         private Image logo;
+        private Image scaledLogo;
         private Thread loadingThread;
         private boolean loading;
         private boolean finished;
@@ -139,15 +140,31 @@ public class ForgottenTemples extends MIDlet {
             g.fillRect(0, 0, w, h);
 
             if (logo != null) {
-                int x = (w - logo.getWidth()) / 2;
-                int y = (h - logo.getHeight()) / 2;
+                if (scaledLogo == null) {
+                    scaledLogo = createScaledLogo(
+                        logo,
+                        w - 16,
+                        h - 90
+                    );
+                }
 
-                g.drawImage(
-                    logo,
-                    x,
-                    y,
-                    Graphics.TOP | Graphics.LEFT
-                );
+                if (scaledLogo != null) {
+                    int x = (w - scaledLogo.getWidth()) / 2;
+                    int availableHeight = h - 65;
+                    int y = (availableHeight
+                        - scaledLogo.getHeight()) / 2;
+
+                    if (y < 8) {
+                        y = 8;
+                    }
+
+                    g.drawImage(
+                        scaledLogo,
+                        x,
+                        y,
+                        Graphics.TOP | Graphics.LEFT
+                    );
+                }
             } else {
                 g.setColor(220, 176, 83);
                 g.drawString(
@@ -167,6 +184,89 @@ public class ForgottenTemples extends MIDlet {
             }
 
             drawLoadingBar(g, w, h);
+        }
+
+        private Image createScaledLogo(
+                Image source,
+                int maxWidth,
+                int maxHeight) {
+
+            int originalWidth = source.getWidth();
+            int originalHeight = source.getHeight();
+
+            if (originalWidth <= 0
+                    || originalHeight <= 0
+                    || maxWidth <= 0
+                    || maxHeight <= 0) {
+                return source;
+            }
+
+            int newWidth = maxWidth;
+            int newHeight =
+                (int) ((long) originalHeight * newWidth
+                    / originalWidth);
+
+            if (newHeight > maxHeight) {
+                newHeight = maxHeight;
+                newWidth =
+                    (int) ((long) originalWidth * newHeight
+                        / originalHeight);
+            }
+
+            if (newWidth < 1) {
+                newWidth = 1;
+            }
+
+            if (newHeight < 1) {
+                newHeight = 1;
+            }
+
+            if (newWidth == originalWidth
+                    && newHeight == originalHeight) {
+                return source;
+            }
+
+            try {
+                int[] sourceRow = new int[originalWidth];
+                int[] scaledPixels =
+                    new int[newWidth * newHeight];
+
+                for (int y = 0; y < newHeight; y++) {
+                    int sourceY =
+                        (int) ((long) y * originalHeight
+                            / newHeight);
+
+                    source.getRGB(
+                        sourceRow,
+                        0,
+                        originalWidth,
+                        0,
+                        sourceY,
+                        originalWidth,
+                        1
+                    );
+
+                    int destinationRow = y * newWidth;
+
+                    for (int x = 0; x < newWidth; x++) {
+                        int sourceX =
+                            (int) ((long) x * originalWidth
+                                / newWidth);
+
+                        scaledPixels[destinationRow + x] =
+                            sourceRow[sourceX];
+                    }
+                }
+
+                return Image.createRGBImage(
+                    scaledPixels,
+                    newWidth,
+                    newHeight,
+                    true
+                );
+            } catch (Exception e) {
+                return source;
+            }
         }
 
         private void drawLoadingBar(Graphics g, int w, int h) {
